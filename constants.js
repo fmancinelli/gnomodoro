@@ -24,5 +24,5 @@ const pomodoroSmallGIcon = new Gio.FileIcon({
 });
 
 const pomodoroGIcon = new Gio.FileIcon({
-    file: Gio.File.new_for_path(Extension.dir.get_child('pomodoro.png').get_path())
+    file: Gio.File.new_for_path(Extension.dir.get_child('images/pomodoro.png').get_path())
 });
