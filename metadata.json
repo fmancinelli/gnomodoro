@@ -1,0 +1,6 @@
+{
+    "uuid": "gnomodoro@mancinelli.me",
+    "name": "Gnomodoro",
+    "description": "A pomodoro timer for Gnome Shell",
+    "shell-version": ["3.6.2"]
+}
