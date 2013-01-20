@@ -34,23 +34,30 @@ const TaskDialog = Lang.Class({
     },
 
     _init: function() {
-	this.parent();
+	this.parent({
+	    styleClass: 'taskDialog'
+	});
 
 	let horizontalBoxLayout = new St.BoxLayout();
 
 	let icon =  new St.Icon({
-	    gicon: Constants.pomodoroGIcon
+	    gicon: Constants.pomodoroGIcon,
+	    styleClass: 'taskDialog-icon'
 	});	
 	horizontalBoxLayout.add(icon);
 
-	let verticalBoxLayout = new St.BoxLayout({vertical: true});
+	let verticalBoxLayout = new St.BoxLayout({
+	    vertical: true
+	});
 		
         let label = new St.Label({	    
             text: _("Please enter task for the next pomodoro:")
 	});
 	verticalBoxLayout.add(label);
 
-	this.entry = new St.Entry();
+	this.entry = new St.Entry({
+	    styleClass: 'taskDialog-entry'
+	});
 	verticalBoxLayout.add(this.entry);
 
 	horizontalBoxLayout.add(verticalBoxLayout);

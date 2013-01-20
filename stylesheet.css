@@ -1,0 +1,23 @@
+.taskDialog-label {
+    font-size: 9pt;
+}
+
+.taskDialog-icon {
+    padding-right: 21px;
+}
+
+.taskDialog-entry {
+    font-size: 36px;
+    font-weight: bold;
+    
+    width: 600px;
+}
+
+.taskDialog {
+    border-radius: 16px;
+
+    padding-right: 21px;
+    padding-left: 21px;
+    padding-bottom: 15px;
+    padding-top: 15px;
+}
