@@ -65,11 +65,20 @@ const TaskDialog = Lang.Class({
             if (symbol == Clutter.Return || symbol == Clutter.KP_Enter) {		
                 this.close();
 
+		let task = this.entry.get_text();
+		
 		if(this._closeCallback) {
-		    this._closeCallback({
-			status: TaskDialog.prototype.Status.OK,
-			task: this.entry.get_text()
-		    });
+		    if(task == '') {
+			this._closeCallback({
+			    status: TaskDialog.prototype.Status.CANCEL,		
+			});
+		    }
+		    else {
+			this._closeCallback({
+			    status: TaskDialog.prototype.Status.OK,
+			    task: task
+			});
+		    }
 		}
 		
                 return true;
