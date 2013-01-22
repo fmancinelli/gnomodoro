@@ -176,7 +176,20 @@ const Indicator = new Lang.Class({
 	    style_class: 'system-status-icon'
 	});
 	boxLayout.add(icon);
+
+	this._timerLabel = new St.Label({
+	    styleClass: 'indicator-label'
+	});
+	this._timerLabel.hide();
+	boxLayout.add(this._timerLabel);
+
 	
+	this._taskLabel = new St.Label({
+	    styleClass: 'indicator-label'
+	});
+	this._taskLabel.hide();
+	boxLayout.add(this._taskLabel);
+
 	this.actor.add_actor(boxLayout);
 
 	/* Build the indicator menu */
@@ -188,27 +201,28 @@ const Indicator = new Lang.Class({
 
 	/* Separator */
 	this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
-	/* Current task */
-        let currentTaskItem = new PopupMenu.PopupMenuItem('No task', { reactive: false });
-        this._currentTaskLabel = currentTaskItem.label;
-	this.menu.addMenuItem(currentTaskItem);
-	
-	
+		
 	/* Build the Gnomodoro object */
 	this._gnomodoro = new Gnomodoro({
 	    timerTickCallback: Lang.bind(this, function(state, elapsedTime) {
-		// TODO: Update indicators
-		log('State ' + state + ' Elapsed time: ' + elapsedTime);
+		this._timerLabel.set_text(this._formatTime(elapsedTime));
 	    }),	    
 	    stateChangeCallback: Lang.bind(this, function(state, data) {
 		if(state == Gnomodoro.prototype.State.DISABLED) {
 		    pomodoroModeMenuItem.setToggleState(false);
-		    this._currentTaskLabel.set_text('No task');
+		    this._taskLabel.hide();
+		    this._timerLabel.hide();
 		}
 		else if(state == Gnomodoro.prototype.State.FOCUS) {
-		    this._currentTaskLabel.set_text('Current task: ' + data.task);
-		}		
+		    this._taskLabel.show();
+		    this._taskLabel.set_text(data.task);
+
+		    this._timerLabel.show();
+
+		}
+		else if(state == Gnomodoro.prototype.State.BREAK) {
+		    this._taskLabel.set_text('Break!');
+		}
 	    })
 	});
 
@@ -223,6 +237,22 @@ const Indicator = new Lang.Class({
 	else {
 	    this._gnomodoro.setState(Gnomodoro.prototype.State.DISABLED);
 	}
+    },
+
+    _formatTime: function(time) {
+	// See http://stackoverflow.com/questions/4228356/integer-division-in-javascript
+	let minutes = ~~(time/60);
+	let seconds = time % 60;
+
+	if(minutes < 10) {
+	    minutes = '0' + minutes;
+	}
+
+	if(seconds < 10) {
+	    seconds = '0' + seconds;
+	}
+
+	return '(' + minutes + ':' + seconds + ')';
     },
 
     _onDestroy: function() {

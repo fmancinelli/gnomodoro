@@ -1,3 +1,7 @@
+.indicator-label {
+    padding-left: 5px;
+}
+
 .taskDialog-label {
     font-size: 9pt;
 }
