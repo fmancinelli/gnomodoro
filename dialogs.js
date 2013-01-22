@@ -50,21 +50,26 @@ const TaskDialog = Lang.Class({
 	    vertical: true
 	});
 		
-        let label = new St.Label({	    
-            text: _("Please enter task for the next pomodoro:")
+        let label = new St.Label({
+	    text: 'Please enter the task for the next pomodoro:'
 	});
 	verticalBoxLayout.add(label);
 
-	this.entry = new St.Entry({
+	this._entry = new St.Entry({
 	    styleClass: 'taskDialog-entry'
 	});
-	verticalBoxLayout.add(this.entry);
+	verticalBoxLayout.add(this._entry);
+
+	this._message = new St.Label({
+	    styleClass: 'taskDialog-message'
+	});
+	verticalBoxLayout.add(this._message);
 
 	horizontalBoxLayout.add(verticalBoxLayout);
 
         this.contentLayout.add(horizontalBoxLayout, { y_align: St.Align.START });
 
-	let entryText = this.entry.clutter_text;
+	let entryText = this._entry.clutter_text;
         this.setInitialKeyFocus(entryText);
 
 	entryText.connect('key-press-event', Lang.bind(this, function(o, e) {
@@ -72,7 +77,7 @@ const TaskDialog = Lang.Class({
             if (symbol == Clutter.Return || symbol == Clutter.KP_Enter) {		
                 this.close();
 
-		let task = this.entry.get_text();
+		let task = this._entry.get_text();
 		
 		if(this._closeCallback) {
 		    if(task == '') {
@@ -108,12 +113,18 @@ const TaskDialog = Lang.Class({
     },
 
     open: function(params) {
-	if(params) {
-	    this._closeCallback = params.closeCallback;
-	    this.entry.set_text(params.task || '');
+	if(!params) {
+	    params = {}
+	}
+
+	this._closeCallback = params.closeCallback;
+	this._entry.set_text(params.task || '');
+	if(params.message) {
+	    this._message.show();
+	    this._message.set_text(params.message);
 	}
 	else {
-	    this.entry.set_text('');
+	    this._message.hide();
 	}
 	
 	this.parent();

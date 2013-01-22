@@ -44,7 +44,12 @@ const Gnomodoro = new Lang.Class({
 	    this._stateChangeCallback = params.stateChangeCallback;	    
 	}
 
+	/* Initialize internal variables */
+	this._pomodoroTime =  25 * 60;
+	this._breakTime = 5 * 60;
+	this._longBreakTime = 15 * 60;
 	this._pomodori = 0;
+	this._pomodoriInARow = 0;
 
 	/* Create the timer */
 	this._timer = new Timer.Timer();
@@ -97,7 +102,28 @@ const Gnomodoro = new Lang.Class({
     },
 
     _setTaskOpenDialog: function() {
+	let message, task;
+	
+	if(this._pomodori > 0) {
+	    if(this._pomodori == 1) {
+		message = 'You have completed 1 pomodoro so far';
+	    }
+	    else {
+		message = 'You have completed ' + this._pomodori + ' pomodori so far';
+	    }
+
+	    if(this._pomodoriInARow > 0) {
+		task = this._currentTask;
+
+		if(this._pomodoriInARow > 1) {
+		    message = message + ' (...of which the last ' + this._pomodoriInARow + ' in a row)';
+		}		
+	    }
+	}
+	
 	this._taskDialog.open({
+	    message: message,
+	    task: task,
 	    closeCallback: Lang.bind(this, function(data) {
 		if(data.status == Dialogs.TaskDialog.prototype.Status.CANCEL) {
 		    this._setState(Gnomodoro.prototype.State.DISABLED);
@@ -113,14 +139,14 @@ const Gnomodoro = new Lang.Class({
     },
 
     _disabledToSetTaskAction: function() {
-	this._pomodori = 0;
+	this._pomodoriInARow = 0;
 	this._setTaskOpenDialog();
     },
 
     _setTaskToFocusAction: function() {
 	this._timer.stop(); // Should not be needed.	
 	this._timer.start({
-	    remainingTime: 25 * 60,
+	    remainingTime: this._pomodoroTime,
 	    timerTickCallback: Lang.bind(this, function(remainingTime) {
 		if(this._timerTickCallback) {
 		    this._timerTickCallback(this._currentState, remainingTime);
@@ -140,10 +166,11 @@ const Gnomodoro = new Lang.Class({
 
     _focusToBreakAction: function() {
 	this._pomodori++;
+	this._pomodoriInARow++;
 
-	let breakTime = 5 * 60;	
-	if((this._pomodori % 4) == 0) {
-	    breakTime = 15 * 60;
+	let breakTime = this._breakTime;	
+	if((this._pomodoriInARow % 4) == 0) {
+	    breakTime = this._longBreakTime;
 	}
 	
 	this._timer.stop(); // Should not be needed.
@@ -212,7 +239,7 @@ const Indicator = new Lang.Class({
 	this.actor.add_actor(boxLayout);
 
 	/* Build the indicator menu */
-	let pomodoroModeMenuItem = new PopupMenu.PopupSwitchMenuItem(_('Pomodoro mode'), false, { style_class: 'popup-subtitle-menu-item' });
+	let pomodoroModeMenuItem = new PopupMenu.PopupSwitchMenuItem('Pomodoro mode', false, { style_class: 'popup-subtitle-menu-item' });
 	pomodoroModeMenuItem.connect('toggled', Lang.bind(this, function() {
 	    this._setPomodoroMode(pomodoroModeMenuItem.state);
 	}));
