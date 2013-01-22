@@ -1,5 +1,8 @@
 dist: clean
 	mkdir dist
-	(cd dist; zip -qr gnomodoro@mancinelli.me.zip ../src/*)
+	(cd src; zip -qr ../dist/gnomodoro@mancinelli.me.zip .)
 clean:
 	rm -rf dist
+install: dist
+	unzip dist/gnomodoro@mancinelli.me -d ~/.local/share/gnome-shell/extensions/gnomodoro@mancinelli.me
+
