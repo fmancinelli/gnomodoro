@@ -25,3 +25,19 @@
     padding-bottom: 15px;
     padding-top: 15px;
 }
+
+
+.message {
+    font-size: 36px;
+    font-weight: bold;
+    color: #ffffff;
+    
+    border-radius: 16px;
+    background-color: rgba(0.0, 0.0, 0.0, 0.9);
+    border: 2px solid #868686;
+
+    padding-right: 21px;
+    padding-left: 21px;
+    padding-bottom: 15px;
+    padding-top: 15px;
+}

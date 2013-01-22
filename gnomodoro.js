@@ -26,6 +26,7 @@ const St = imports.gi.St;
 const Constants = Extension.imports.constants;
 const Dialogs = Extension.imports.dialogs;
 const Timer = Extension.imports.timer;
+const Utils = Extension.imports.utils;
 
 const Gnomodoro = new Lang.Class({
     Name: 'Gnomodoro',
@@ -42,6 +43,8 @@ const Gnomodoro = new Lang.Class({
 	    this._timerTickCallback = params.timerTickCallback;
 	    this._stateChangeCallback = params.stateChangeCallback;	    
 	}
+
+	this._pomodori = 0;
 
 	/* Create the timer */
 	this._timer = new Timer.Timer();
@@ -110,41 +113,58 @@ const Gnomodoro = new Lang.Class({
     },
 
     _disabledToSetTaskAction: function() {
+	this._pomodori = 0;
 	this._setTaskOpenDialog();
     },
 
     _setTaskToFocusAction: function() {
 	this._timer.stop(); // Should not be needed.	
 	this._timer.start({
-	    endTime: 5, // TODO: Set this to pomodoro time.
-	    timerTickCallback: Lang.bind(this, function(elapsedTime) {
+	    remainingTime: 25 * 60,
+	    timerTickCallback: Lang.bind(this, function(remainingTime) {
 		if(this._timerTickCallback) {
-		    this._timerTickCallback(this._currentState, elapsedTime);
+		    this._timerTickCallback(this._currentState, remainingTime);
 		}
 	    }),
-	    timerEndCallback: Lang.bind(this, function(elapsedTime) {
+	    timerEndCallback: Lang.bind(this, function() {
 		this._setState(Gnomodoro.prototype.State.BREAK);
 	    })
 	});
+
+	Utils.showMessage('Have a nice pomodoro on ' + this._currentTask);
     },
 
     _focusToDisabledAction: function() {
 	this._timer.stop();
     },
 
-    _focusToBreakAction: function() {	
+    _focusToBreakAction: function() {
+	this._pomodori++;
+
+	let breakTime = 5 * 60;	
+	if((this._pomodori % 4) == 0) {
+	    breakTime = 15 * 60;
+	}
+	
 	this._timer.stop(); // Should not be needed.
 	this._timer.start({
-	    endTime: 5, // TODO: Set this to break time.
-	    timerTickCallback: Lang.bind(this, function(elapsedTime) {
+	    remainingTime: breakTime,
+	    timerTickCallback: Lang.bind(this, function(remainingTime) {
 		if(this._timerTickCallback) {
-		    this._timerTickCallback(this._currentState, elapsedTime);
+		    this._timerTickCallback(this._currentState, remainingTime);
 		}
 	    }),
-	    timerEndCallback: Lang.bind(this, function(elapsedTime) {
+	    timerEndCallback: Lang.bind(this, function() {
 		this._setState(Gnomodoro.prototype.State.SET_TASK);
 	    })
 	});
+
+	if((this._pomodori % 4) == 0) {
+	    Utils.showMessage('You did 4 pomodori! Time for a longer break.');
+	}
+	else {
+	    Utils.showMessage('The pomodoro is over... Now take a break!');
+	}
     },
 
     _breakToDisabledAction: function() {
@@ -182,7 +202,6 @@ const Indicator = new Lang.Class({
 	});
 	this._timerLabel.hide();
 	boxLayout.add(this._timerLabel);
-
 	
 	this._taskLabel = new St.Label({
 	    styleClass: 'indicator-label'
@@ -204,8 +223,8 @@ const Indicator = new Lang.Class({
 		
 	/* Build the Gnomodoro object */
 	this._gnomodoro = new Gnomodoro({
-	    timerTickCallback: Lang.bind(this, function(state, elapsedTime) {
-		this._timerLabel.set_text(this._formatTime(elapsedTime));
+	    timerTickCallback: Lang.bind(this, function(state, remainingTime) {
+		this._timerLabel.set_text('(' + Utils.formatTime(remainingTime) + ')');
 	    }),	    
 	    stateChangeCallback: Lang.bind(this, function(state, data) {
 		if(state == Gnomodoro.prototype.State.DISABLED) {
@@ -237,22 +256,6 @@ const Indicator = new Lang.Class({
 	else {
 	    this._gnomodoro.setState(Gnomodoro.prototype.State.DISABLED);
 	}
-    },
-
-    _formatTime: function(time) {
-	// See http://stackoverflow.com/questions/4228356/integer-division-in-javascript
-	let minutes = ~~(time/60);
-	let seconds = time % 60;
-
-	if(minutes < 10) {
-	    minutes = '0' + minutes;
-	}
-
-	if(seconds < 10) {
-	    seconds = '0' + seconds;
-	}
-
-	return '(' + minutes + ':' + seconds + ')';
     },
 
     _onDestroy: function() {
