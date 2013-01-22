@@ -2,5 +2,7 @@
     "uuid": "gnomodoro@mancinelli.me",
     "name": "Gnomodoro",
     "description": "A pomodoro timer for Gnome Shell",
-    "shell-version": ["3.6.2"]
+    "shell-version": ["3.6"],
+    "url": "https://github.com/fmancinelli/gnomodoro",
+    "version": "1.0"
 }
