@@ -4,5 +4,5 @@
     "description": "A pomodoro timer for Gnome Shell",
     "shell-version": ["3.6"],
     "url": "https://github.com/fmancinelli/gnomodoro",
-    "version": "1.0"
+    "version": "1.1-SNAPSHOT"
 }
