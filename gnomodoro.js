@@ -25,6 +25,7 @@ const St = imports.gi.St;
 
 const Constants = Extension.imports.constants;
 const Dialogs = Extension.imports.dialogs;
+const Timer = Extension.imports.timer;
 
 const Gnomodoro = new Lang.Class({
     Name: 'Gnomodoro',
@@ -38,75 +39,126 @@ const Gnomodoro = new Lang.Class({
 
     _init: function(params) {
 	if(params) {
-	    this._stateChangeCallback = params.stateChangeCallback;
+	    this._timerTickCallback = params.timerTickCallback;
+	    this._stateChangeCallback = params.stateChangeCallback;	    
 	}
+
+	/* Create the timer */
+	this._timer = new Timer.Timer();
 	
 	/* Create the task dialog */
 	this._taskDialog = new Dialogs.TaskDialog();
 
 	/* Set the initial state */
-    	this.setState(Gnomodoro.prototype.State.DISABLED);
+	this._currentState = Gnomodoro.prototype.State.DISABLED;
+
+	/* Transition and action definitions */
+	this._transitionAction = {};
+
+	this._transitionAction[Gnomodoro.prototype.State.DISABLED] = {};
+	this._transitionAction[Gnomodoro.prototype.State.DISABLED][Gnomodoro.prototype.State.DISABLED] = function() {};
+	this._transitionAction[Gnomodoro.prototype.State.DISABLED][Gnomodoro.prototype.State.SET_TASK] = Lang.bind(this, this._disabledToSetTaskAction);
+	
+	this._transitionAction[Gnomodoro.prototype.State.SET_TASK] = {};
+	this._transitionAction[Gnomodoro.prototype.State.SET_TASK][Gnomodoro.prototype.State.DISABLED] = function() {};
+	this._transitionAction[Gnomodoro.prototype.State.SET_TASK][Gnomodoro.prototype.State.FOCUS] = Lang.bind(this, this._setTaskToFocusAction);
+
+	this._transitionAction[Gnomodoro.prototype.State.FOCUS] = {};
+	this._transitionAction[Gnomodoro.prototype.State.FOCUS][Gnomodoro.prototype.State.DISABLED] = Lang.bind(this, this._focusToDisabledAction);
+	this._transitionAction[Gnomodoro.prototype.State.FOCUS][Gnomodoro.prototype.State.BREAK] = Lang.bind(this, this._focusToBreakAction);
+
+	this._transitionAction[Gnomodoro.prototype.State.BREAK] = {};
+	this._transitionAction[Gnomodoro.prototype.State.BREAK][Gnomodoro.prototype.State.DISABLED] = Lang.bind(this, this._breakToDisabledAction);
+	this._transitionAction[Gnomodoro.prototype.State.BREAK][Gnomodoro.prototype.State.SET_TASK] = Lang.bind(this, this._breakToSetTaskAction);
     },
 
     setState: function(state) {
-	switch(state) {
-	case Gnomodoro.prototype.State.DISABLED: {
-	    this.state = Gnomodoro.prototype.State.DISABLED;
-	    if(this._stateChangeCallback) {
-		this._stateChangeCallback({
-		    state: Gnomodoro.prototype.State.DISABLED
-		});
-	    }
-	    
-	    break;
+	this._setState(state);
+    },
+    
+    _setState: function(state, callbackData) {
+	if(!this._transitionAction[this._currentState]) {
+	    throw new Error('No valid transitions from ' + this._currentState + ' found.');
 	}
 
-	case Gnomodoro.prototype.State.SET_TASK: {
-	    this.state = Gnomodoro.prototype.State.SET_TASK;
-	    if(this._stateChangeCallback) {
-		this._stateChangeCallback({
-		    state: Gnomodoro.prototype.State.SET_TASK
-		});
-	    }
-
-	    this._taskDialog.open({
-		closeCallback: Lang.bind(this, function(data) {
-		    if(data.status == Dialogs.TaskDialog.prototype.Status.CANCEL) {
-			this.setState(Gnomodoro.prototype.State.DISABLED);
-		    }		
-		})
-	    });
-
-	    
-	    break;
+	if(!this._transitionAction[this._currentState][state]) {
+	    throw new Error('No valid transitions from ' + this._currentState + ' to ' + state + ' found.');
 	}
 
-	case Gnomodoro.prototype.State.FOCUS: {		
-	    this.state = Gnomodoro.prototype.State.FOCUS;
-	    if(this._stateChangeCallback) {
-		this._stateChangeCallback({
-		    state: Gnomodoro.prototype.State.FOCUS
-		});
-	    }
-	    
-	    break;
+	this._transitionAction[this._currentState][state]();
+
+	this._currentState = state;
+	if(this._stateChangeCallback) {
+	    this._stateChangeCallback(state, callbackData);
 	}
+    },
 
-	case Gnomodoro.prototype.State.BREAK: {
-	    this.state = Gnomodoro.prototype.State.BREAK;
-	    if(this._stateChangeCallback) {
-		this._stateChangeCallback({
-		    state: Gnomodoro.prototype.State.BREAK
-		});
-	    }
+    _setTaskOpenDialog: function() {
+	this._taskDialog.open({
+	    closeCallback: Lang.bind(this, function(data) {
+		if(data.status == Dialogs.TaskDialog.prototype.Status.CANCEL) {
+		    this._setState(Gnomodoro.prototype.State.DISABLED);
+		}
+		else if(data.status == Dialogs.TaskDialog.prototype.Status.OK) {
+		    this._currentTask = data.task;
+		    this._setState(Gnomodoro.prototype.State.FOCUS, {
+			task: data.task
+		    });
+		}
+	    })
+	});
+    },
 
-	    break;
-	}	    
-	}		
+    _disabledToSetTaskAction: function() {
+	this._setTaskOpenDialog();
+    },
+
+    _setTaskToFocusAction: function() {
+	this._timer.stop(); // Should not be needed.	
+	this._timer.start({
+	    endTime: 5, // TODO: Set this to pomodoro time.
+	    timerTickCallback: Lang.bind(this, function(elapsedTime) {
+		if(this._timerTickCallback) {
+		    this._timerTickCallback(this._currentState, elapsedTime);
+		}
+	    }),
+	    timerEndCallback: Lang.bind(this, function(elapsedTime) {
+		this._setState(Gnomodoro.prototype.State.BREAK);
+	    })
+	});
+    },
+
+    _focusToDisabledAction: function() {
+	this._timer.stop();
+    },
+
+    _focusToBreakAction: function() {	
+	this._timer.stop(); // Should not be needed.
+	this._timer.start({
+	    endTime: 5, // TODO: Set this to break time.
+	    timerTickCallback: Lang.bind(this, function(elapsedTime) {
+		if(this._timerTickCallback) {
+		    this._timerTickCallback(this._currentState, elapsedTime);
+		}
+	    }),
+	    timerEndCallback: Lang.bind(this, function(elapsedTime) {
+		this._setState(Gnomodoro.prototype.State.SET_TASK);
+	    })
+	});
+    },
+
+    _breakToDisabledAction: function() {
+	this._timer.stop();
+    },
+
+    _breakToSetTaskAction: function() {
+	this._timer.stop();
+	this._setTaskOpenDialog();
     },
     
     destroy: function() {
 	this._taskDialog.destroy();
+	this._timer.destroy();
     }    
 });
 
@@ -133,14 +185,30 @@ const Indicator = new Lang.Class({
 	    this._setPomodoroMode(pomodoroModeMenuItem.state);
 	}));
 	this.menu.addMenuItem(pomodoroModeMenuItem);
-	
 
+	/* Separator */
+	this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+	/* Current task */
+        let currentTaskItem = new PopupMenu.PopupMenuItem('No task', { reactive: false });
+        this._currentTaskLabel = currentTaskItem.label;
+	this.menu.addMenuItem(currentTaskItem);
+	
+	
 	/* Build the Gnomodoro object */
 	this._gnomodoro = new Gnomodoro({
-	    stateChangeCallback: Lang.bind(this, function(data) {
-		if(data.state == Gnomodoro.prototype.State.DISABLED) {
+	    timerTickCallback: Lang.bind(this, function(state, elapsedTime) {
+		// TODO: Update indicators
+		log('State ' + state + ' Elapsed time: ' + elapsedTime);
+	    }),	    
+	    stateChangeCallback: Lang.bind(this, function(state, data) {
+		if(state == Gnomodoro.prototype.State.DISABLED) {
 		    pomodoroModeMenuItem.setToggleState(false);
+		    this._currentTaskLabel.set_text('No task');
 		}
+		else if(state == Gnomodoro.prototype.State.FOCUS) {
+		    this._currentTaskLabel.set_text('Current task: ' + data.task);
+		}		
 	    })
 	});
 
@@ -151,7 +219,10 @@ const Indicator = new Lang.Class({
     _setPomodoroMode: function(pomodoroMode) {
 	if(pomodoroMode == true) {
 	    this._gnomodoro.setState(Gnomodoro.prototype.State.SET_TASK);
-	}	
+	}
+	else {
+	    this._gnomodoro.setState(Gnomodoro.prototype.State.DISABLED);
+	}
     },
 
     _onDestroy: function() {

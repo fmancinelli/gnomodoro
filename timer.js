@@ -24,61 +24,78 @@ const Timer = new Lang.Class({
     Name: 'Timer',
 
     _init: function() {
-    }
+    },
 
     start: function(params) {
 	if(this._timeoutId) {
-	    return;
+	    return false;
 	}
 
 	if(!params) {
-	    return;
+	    return false;
 	}
 
 	if(!params.endTime) {
-	    return;
+	    return false;
 	}
 
 	this._elapsedTime = 0;
 	this._endTime = params.endTime;
-	this._tickCallback = params.tickCallback;
+	this._timerTickCallback = params.timerTickCallback;
 	this._timerEndCallback = params.timerEndCallback;
 	this._timeoutId = MainLoop.timeout_add(1000, Lang.bind(this, this._timerFunction));
-    }
+
+	return true;
+    },
 
     _timerFunction: function() {
 	this._elapsedTime++;
 
-	if(this._elapsedTime >= this._endTime) {
-	    if(this._timerEndCallback) {
-		this._timerEndCallback(this._elapsedTime);
-	    }
+	if(this._elapsedTime > this._endTime) {
+	    /* Save the timerEndCallback if it exists and elapsed time */
+	    let timerEndCallback = this._timerEndCallback;
+	    let elapsedTime = this._elapsedTime;
+
 	    this.stop();
+
+	    if(timerEndCallback) {
+		timerEndCallback(elapsedTime);
+	    }
 
 	    return false;
 	}
 
-	if(this._tickCallback) {
-	    this._tickCallback(this._elapsedTime);
+	if(this._timerTickCallback) {
+	    this._timerTickCallback(this._elapsedTime);
 	}
 
 	return true;
-    }
+    },
 
     stop: function() {
 	if(!this._timeoutId) {
-	    return;
+	    return false;
 	}
 
 	MainLoop.source_remove(this._timeoutId);
 	this._timeoutId = null;
 	this._elapsedTime = null;
 	this._endTime = null;
-	this._tickCallback = null;
+	this._timerTickCallback = null;
 	this._timerEndCallback = null;
-    }
-	
 
+	return true;
+    },
+
+    isStarted: function() {
+	if(this._timeoutId) {
+	    return true;
+	}
+	else {
+	    return false;
+	}
+    },
+	    	
     destroy: function() {
 	this.stop();
     }
