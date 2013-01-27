@@ -16,6 +16,10 @@ Gnomodoro is a [Gnome Shell](http://www.gnome.org/gnome-3/) extension that imple
 
 ## Installation
 
+### From the Gnome Extensions site
+
+1. Gnomodoro is available here for automatic installation: [https://extensions.gnome.org/extension/587/gnomodoro/](https://extensions.gnome.org/extension/587/gnomodoro/)
+
 ### From the sources
 
 1. Download or clone this repository (or one of its tags)
