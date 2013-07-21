@@ -28,6 +28,10 @@ const Dialogs = Extension.imports.dialogs;
 const Timer = Extension.imports.timer;
 const Utils = Extension.imports.utils;
 
+const Convenience = Extension.imports.convenience;
+const Gettext = imports.gettext.domain('gnomodoro');
+const _ = Gettext.gettext;
+
 const Gnomodoro = new Lang.Class({
     Name: 'Gnomodoro',
     
@@ -39,6 +43,7 @@ const Gnomodoro = new Lang.Class({
     },
 
     _init: function(params) {
+	Convenience.initTranslations("gnomodoro");
 	if(params) {
 	    this._timerTickCallback = params.timerTickCallback;
 	    this._stateChangeCallback = params.stateChangeCallback;	    
@@ -106,17 +111,17 @@ const Gnomodoro = new Lang.Class({
 	
 	if(this._pomodori > 0) {
 	    if(this._pomodori == 1) {
-		message = 'You have completed 1 pomodoro so far';
+		message = _("You have completed") + ' 1 ' + _("pomodoro so far");
 	    }
 	    else {
-		message = 'You have completed ' + this._pomodori + ' pomodori so far';
+		message = _("You have completed") + ' ' + this._pomodori + ' ' + _("pomodori so far");
 	    }
 
 	    if(this._pomodoriInARow > 0) {
 		task = this._currentTask;
 
 		if(this._pomodoriInARow > 1) {
-		    message = message + ' (...of which the last ' + this._pomodoriInARow + ' in a row)';
+		    message = message + ' (...' + _("of which the last") + ' ' + this._pomodoriInARow + ' ' + _("in a row")+')';
 		}		
 	    }
 	}
@@ -157,7 +162,7 @@ const Gnomodoro = new Lang.Class({
 	    })
 	});
 
-	Utils.showMessage('Have a nice pomodoro on ' + this._currentTask);
+	Utils.showMessage(_("Have a nice pomodoro on") + ' ' + this._currentTask);
     },
 
     _focusToDisabledAction: function() {
@@ -187,10 +192,10 @@ const Gnomodoro = new Lang.Class({
 	});
 
 	if((this._pomodori % 4) == 0) {
-	    Utils.showMessage('You did 4 pomodori! Time for a longer break.');
+	    Utils.showMessage(_("You did 4 pomodori! Time for a longer break."));
 	}
 	else {
-	    Utils.showMessage('The pomodoro is over... Now take a break!');
+	    Utils.showMessage(_("The pomodoro is over... Now take a break!"));
 	}
     },
 
@@ -239,7 +244,7 @@ const Indicator = new Lang.Class({
 	this.actor.add_actor(boxLayout);
 
 	/* Build the indicator menu */
-	let pomodoroModeMenuItem = new PopupMenu.PopupSwitchMenuItem('Pomodoro mode', false, { style_class: 'popup-subtitle-menu-item' });
+	let pomodoroModeMenuItem = new PopupMenu.PopupSwitchMenuItem(_("Pomodoro mode"), false, { style_class: 'popup-subtitle-menu-item' });
 	pomodoroModeMenuItem.connect('toggled', Lang.bind(this, function() {
 	    this._setPomodoroMode(pomodoroModeMenuItem.state);
 	}));

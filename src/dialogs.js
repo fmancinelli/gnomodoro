@@ -22,6 +22,10 @@ const Lang = imports.lang;
 const ModalDialog = imports.ui.modalDialog;
 const St = imports.gi.St;
 
+const Convenience = Extension.imports.convenience;
+const Gettext = imports.gettext.domain('gnomodoro');
+const _ = Gettext.gettext;
+
 const Constants = Extension.imports.constants;
 
 const TaskDialog = Lang.Class({
@@ -34,6 +38,8 @@ const TaskDialog = Lang.Class({
     },
 
     _init: function() {
+        Convenience.initTranslations("gnomodoro");
+
 	this.parent({
 	    styleClass: 'taskDialog'
 	});
@@ -51,7 +57,7 @@ const TaskDialog = Lang.Class({
 	});
 		
         let label = new St.Label({
-	    text: 'Please enter the task for the next pomodoro:'
+	    text: _("Please enter the task for the next pomodoro:")
 	});
 	verticalBoxLayout.add(label);
 

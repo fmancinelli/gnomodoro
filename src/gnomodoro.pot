@@ -1,0 +1,58 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-07-21 22:50+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: dialogs.js:60
+msgid "Please enter the task for the next pomodoro:"
+msgstr ""
+
+#: gnomodoro.js:114 gnomodoro.js:117
+msgid "You have completed"
+msgstr ""
+
+#: gnomodoro.js:114
+msgid "pomodoro so far"
+msgstr ""
+
+#: gnomodoro.js:117
+msgid "pomodori so far"
+msgstr ""
+
+#: gnomodoro.js:124
+msgid "of which the last"
+msgstr ""
+
+#: gnomodoro.js:124
+msgid "in a row"
+msgstr ""
+
+#: gnomodoro.js:165
+msgid "Have a nice pomodoro on"
+msgstr ""
+
+#: gnomodoro.js:195
+msgid "You did 4 pomodori! Time for a longer break."
+msgstr ""
+
+#: gnomodoro.js:198
+msgid "The pomodoro is over... Now take a break!"
+msgstr ""
+
+#: gnomodoro.js:247
+msgid "Pomodoro mode"
+msgstr ""
